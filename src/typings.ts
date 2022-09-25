@@ -1,5 +1,9 @@
 import type { Application } from 'express'
 
+export interface IObject {
+  [key: string]: any
+}
+
 export interface IResponse {
   msg: string
   code: number
@@ -28,7 +32,7 @@ export interface IKillResuest extends IRequest {
   fromLineNum: number
 }
 
-export interface IOptions {
+export interface IExecutorOptions<T extends IObject> {
   /**
    * @default '/job'
    */
@@ -42,10 +46,19 @@ export interface IOptions {
    */
   appType?: 'express'
 
-  app: Application
+  context: T
   baseUrl: string
+  app: Application
   exectorKey: string
   accessToken: string
   scheduleCenterUrl: string
-  taskHandlers: Map<string, Function>
+  jobHandlers: Map<string, JobHandler<T>>
 }
+
+export interface ICallBackOptions<U = any> {
+  result?: U
+  error?: Error
+  logId: number
+}
+
+export type JobHandler<T extends IObject, R = any> = (params: string, context: T) => Promise<R>

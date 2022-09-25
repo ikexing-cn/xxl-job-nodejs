@@ -1,27 +1,21 @@
-import type { Debug } from 'debug'
-import type { IResponse, IRunRequest } from './typings'
 import { logger } from './utils'
+import type {
+  IObject,
+  IRunRequest,
+  JobHandler
+} from './typings'
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
-interface ObjectAny {
-  [key: string]: any
-}
-export function createTaskManager<T extends ObjectAny>(options?: any, context?: T) {
+export function createTaskManager<T extends IObject>(context: T) {
   const runningTaskList = new Set<number>()
 
   function hasJob(jobId: number) {
     return runningTaskList.has(jobId)
   }
 
-  function runTask(jobHandler: (
-    logger: Debug,
-    params: string,
-    context: T
-  ) => void,
-  response: IRunRequest, callback: Function): IResponse {
+  async function runTask(jobHandler: JobHandler<T>, response: IRunRequest, callback: Function) {
     let timeout: NodeJS.Timeout
-    const { executorParams, jobId, executorTimeout } = response
-    const taskParams = executorParams ? JSON.parse(executorParams) : {}
+    const { executorParams, jobId, executorTimeout, logId } = response
+    const taskParams = JSON.parse(executorParams) || {}
     logger.log(`Job Task: ${jobId} is running`)
     if (hasJob(jobId))
       return { code: 500, msg: 'There is already have a same job is running.' }
@@ -29,26 +23,34 @@ export function createTaskManager<T extends ObjectAny>(options?: any, context?: 
 
     if (executorTimeout) {
       timeout = setTimeout(() => {
-        finishTask({ callback, jobId, timeout, error: new Error(`Job Task: ${jobId} state is Timeout`) })
-      }, executorTimeout)
+        finishTask({ callback, jobId, timeout, logId, error: new Error(`Job Task: ${jobId} is Timeout.`) })
+      }, executorTimeout * 1000)
     }
+
+    await jobHandler(taskParams, context)
+      .then(() => finishTask({ callback, jobId, logId }))
+      .catch(error => finishTask({ callback, jobId, logId, error }))
 
     return { code: 200, msg: 'message' }
   }
 
-  async function finishTask(options: {
+  async function finishTask<R = any>(options: {
     jobId: number
+    logId: number
     callback: Function
+    result?: R
     error?: Error
     timeout?: NodeJS.Timeout
   }) {
-    const { jobId, callback, error, timeout } = options
+    const { jobId, logId, callback, error, timeout, result } = options
     timeout && clearTimeout(timeout)
     error && logger.extend(':error').log(error.message || error)
     logger.log(`Job Task: ${jobId} is finished`)
-    await callback(error)
+    await callback({ error, result, logId })
     runningTaskList.delete(jobId)
   }
 
-  return {}
+  return {
+    runTask
+  }
 }
