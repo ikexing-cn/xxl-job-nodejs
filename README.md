@@ -2,7 +2,7 @@
 
 [![NPM version](https://img.shields.io/npm/v/xxl-job?color=a1b858&label=)](https://www.npmjs.com/package/xxl-job)
 
-Provide xxl-job SDK for NodeJs.
+[WIP] Provide xxl-job SDK for NodeJs.
 
 ## TODO
 
