@@ -1,0 +1,61 @@
+{
+  "name": "xxl-job-nodejs",
+  "type": "module",
+  "version": "0.0.0",
+  "packageManager": "pnpm@7.5.2",
+  "description": "",
+  "author": "ikexing <ikexing@qq.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/ikexing-cn/xxl-job-nodejs#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ikexing-cn/xxl-job-nodejs.git"
+  },
+  "bugs": "https://github.com/ikexing-cn/xxl-job-nodejs/issues",
+  "keywords": [],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*",
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "unbuild",
+    "dev": "esno watch src",
+    "lint": "eslint .",
+    "prepublishOnly": "nr build",
+    "release": "bumpp && npm publish",
+    "start": "esno src/index.ts",
+    "test": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^0.27.0",
+    "@antfu/ni": "^0.18.0",
+    "@types/node": "^18.7.20",
+    "bumpp": "^8.2.1",
+    "eslint": "^8.24.0",
+    "esno": "^0.16.3",
+    "pnpm": "^7.12.2",
+    "typescript": "^4.8.3",
+    "unbuild": "^0.8.11",
+    "vite": "^3.1.3",
+    "vitest": "^0.23.4"
+  }
+}
