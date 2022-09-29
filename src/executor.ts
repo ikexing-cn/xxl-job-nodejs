@@ -20,7 +20,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     scheduleCenterUrl,
   } = options
 
-  const { runTask } = createTaskManager(context)
+  const { runTask, hasJob } = createTaskManager(context)
 
   async function applyMiddleware() {
     switch (appType.toLowerCase().trim()) {
@@ -52,18 +52,17 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     router.post(`${baseUrl}/beat`, async (_, res) => {
       res.status(200).send({ code: 200, msg: 'success' })
     })
-    // router.post(`${baseUrl}/idleBeat`, async (...contexts) => {
-    //   const { req, res } = wrappedHandler(contexts)
-    //   const jobId = pathOr(-1, ['body', 'jobId'], req)
-    //   res.send(idleBeat(jobId))
-    // })
+    router.post(`${baseUrl}/idleBeat`, async (req, res) => {
+      const { jobId = -1 } = req.body
+      res.status(200).send(idleBeat(jobId))
+    })
     router.post(`${baseUrl}/run`, async (req, res) => {
       res.status(200).send(await run(req.body))
     })
-    // router.post(`${baseUrl}/kill`, async (...contexts) => {
-    //   const { req, res } = wrappedHandler(contexts)
-    //   res.send(killJob(pathOr(-1, ['body', 'jobId'], req)))
-    // })
+    router.post(`${baseUrl}/kill`, async (req, res) => {
+      const { jobId = -1 } = req.body
+      res.status(200).send(killJob(jobId))
+    })
     // router.post(`${baseUrl}/log`, async (...contexts) => {
     //   const { req, res } = wrappedHandler(contexts)
     //   const { logDateTim: logDateTime, logId, fromLineNum } = propOr({}, 'body', req)
@@ -78,9 +77,18 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     if (!jobHandler)
       return { code: 500, msg: `No matched jobHandler: ${executorHandler}` }
 
-    await runTask(jobHandler, runRequest, callBack)
+    return await runTask(jobHandler, runRequest, callBack)
   }
 
+  function idleBeat(jobId: number) {
+    return hasJob(jobId) ? { code: 500, msg: 'busy' } : { code: 200, msg: 'idle' }
+  }
+
+  function killJob(jobId: any): any {
+    return { code: 500, msg: `Not yet support, jobId: ${jobId}` }
+  }
+
+  // TODO: Event Control
   async function callBack<U = any>(options: ICallBackOptions<U>) {
     const { error, result, logId } = options
     const url = `${scheduleCenterUrl}/api/callback`

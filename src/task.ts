@@ -31,7 +31,7 @@ export function createTaskManager<T extends IObject>(context: T) {
       .then(() => finishTask({ callback, jobId, logId }))
       .catch(error => finishTask({ callback, jobId, logId, error }))
 
-    return { code: 200, msg: 'message' }
+    return { code: 200, msg: 'Success' }
   }
 
   async function finishTask<R = any>(options: {
@@ -51,6 +51,7 @@ export function createTaskManager<T extends IObject>(context: T) {
   }
 
   return {
-    runTask
+    runTask,
+    hasJob
   }
 }

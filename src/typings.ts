@@ -1,12 +1,8 @@
 import type { Application } from 'express'
 
-export interface IObject {
-  [key: string]: any
-}
-
 export interface IResponse {
   msg: string
-  code: number
+  code: 500 | 200
 }
 
 export interface IRequest {
@@ -45,6 +41,14 @@ export interface IExecutorOptions<T extends IObject> {
    * @default 'express'
    */
   appType?: 'express'
+  /**
+   * @default 'memory'
+   */
+  storageLog?: 'memory' | 'local'
+  /**
+   * @default ''
+   */
+  storageLocalUri?: string
 
   context: T
   baseUrl: string
@@ -61,4 +65,5 @@ export interface ICallBackOptions<U = any> {
   logId: number
 }
 
-export type JobHandler<T extends IObject, R = any> = (params: string, context: T) => Promise<R>
+export type IObject = Record<string, any>
+export type JobHandler<T extends IObject, R = any> = (params: string, context?: T) => Promise<R>
