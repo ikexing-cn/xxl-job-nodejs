@@ -1,11 +1,11 @@
-import { logger } from './utils'
+import { logger } from './logger'
 import type {
   IObject,
   IRunRequest,
   JobHandler
 } from './typings'
 
-export function createTaskManager<T extends IObject>(context: T) {
+export function createTaskManager<T extends IObject>(context?: T) {
   const runningTaskList = new Set<number>()
 
   function hasJob(jobId: number) {
@@ -15,7 +15,7 @@ export function createTaskManager<T extends IObject>(context: T) {
   async function runTask(jobHandler: JobHandler<T>, response: IRunRequest, callback: Function) {
     let timeout: NodeJS.Timeout
     const { executorParams, jobId, executorTimeout, logId } = response
-    const taskParams = JSON.parse(executorParams) || {}
+    const taskParams = (executorParams && JSON.parse(executorParams)) || {}
     logger.log(`Job Task: ${jobId} is running`)
     if (hasJob(jobId))
       return { code: 500, msg: 'There is already have a same job is running.' }
@@ -27,7 +27,7 @@ export function createTaskManager<T extends IObject>(context: T) {
       }, executorTimeout * 1000)
     }
 
-    await jobHandler(taskParams, context)
+    await jobHandler(logger, taskParams, context)
       .then(() => finishTask({ callback, jobId, logId }))
       .catch(error => finishTask({ callback, jobId, logId, error }))
 
@@ -44,14 +44,14 @@ export function createTaskManager<T extends IObject>(context: T) {
   }) {
     const { jobId, logId, callback, error, timeout, result } = options
     timeout && clearTimeout(timeout)
-    error && logger.extend(':error').log(error.message || error)
+    error && logger.trace(error.message || error)
     logger.log(`Job Task: ${jobId} is finished`)
     await callback({ error, result, logId })
     runningTaskList.delete(jobId)
   }
 
   return {
-    runTask,
-    hasJob
+    hasJob,
+    runTask
   }
 }

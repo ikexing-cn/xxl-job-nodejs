@@ -1,33 +1,57 @@
 import type { Request, Response } from 'express'
 import { Router } from 'express'
+import { logger } from './logger'
 import { createTaskManager, request } from './'
 import type { ICallBackOptions, IExecutorOptions, IObject, IRunRequest } from './'
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
 export function createXxlJobExecutor<T extends IObject>(options: IExecutorOptions<T>) {
-  let router: Router
+  const router: Router = Router()
 
   const {
     route = '/job',
-    debug = false,
     appType = 'express',
     app,
     context,
     baseUrl,
     accessToken,
-    exectorKey,
+    executorKey,
     jobHandlers,
     scheduleCenterUrl,
   } = options
 
   const { runTask, hasJob } = createTaskManager(context)
+  const data = { registryGroup: 'EXECUTOR', registryKey: executorKey, registryValue: baseUrl + route }
+  const headers = { 'xxl-job-access-token': accessToken }
 
-  async function applyMiddleware() {
+  async function initialization() {
+    applyMiddleware()
+    setInterval(() => registry(), 30000)
+  }
+
+  async function registry() {
+    const url = `${scheduleCenterUrl}/api/registry`
+    const res = await request(url, { method: 'POST', data, headers })
+    if (res.data)
+      logger.trace('Registry info: ', res.data)
+    else
+      logger.error('Registry failed: ', res)
+  }
+
+  async function cancel() {
+    const url = `${scheduleCenterUrl}/api/registryRemove`
+    const res = await request(url, { method: 'POST', data, headers })
+    if (res.data)
+      logger.trace('Registry info: ', res.data)
+    else
+      logger.error('Registry failed: ', res)
+  }
+
+  function applyMiddleware() {
     switch (appType.toLowerCase().trim()) {
       case 'express': {
-        router = Router()
-        app.use(initMiddleware())
+        router.use(route, initMiddleware())
         addRoutes()
+        app.use(router)
       }
     }
   }
@@ -49,19 +73,32 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   }
 
   function addRoutes() {
-    router.post(`${baseUrl}/beat`, async (_, res) => {
+    router.post(`${route}/beat`, async (_, res) => {
       res.status(200).send({ code: 200, msg: 'success' })
     })
-    router.post(`${baseUrl}/idleBeat`, async (req, res) => {
+    router.post(`${route}/idleBeat`, async (req, res) => {
       const { jobId = -1 } = req.body
       res.status(200).send(idleBeat(jobId))
     })
-    router.post(`${baseUrl}/run`, async (req, res) => {
+    router.post(`${route}/run`, async (req, res) => {
       res.status(200).send(await run(req.body))
     })
-    router.post(`${baseUrl}/kill`, async (req, res) => {
+    router.post(`${route}/kill`, async (req, res) => {
       const { jobId = -1 } = req.body
       res.status(200).send(killJob(jobId))
+    })
+    router.post(`${route}/log`, async (req, res) => {
+      // todo
+      res.send({
+        code: 200,
+        msg: null,
+        content: {
+          fromLineNum: 1, // 本次请求，日志开始行数
+          toLineNum: 100, // 本次请求，日志结束行号
+          logContent: 'xxx', // 本次请求日志内容
+          isEnd: true // 日志是否全部加载完
+        }
+      })
     })
     // router.post(`${baseUrl}/log`, async (...contexts) => {
     //   const { req, res } = wrappedHandler(contexts)
@@ -101,6 +138,8 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   }
 
   return {
+    cancel,
+    initialization,
     applyMiddleware
   }
 }

@@ -1,4 +1,5 @@
 import type { Application } from 'express'
+import type { Logger } from 'log4js'
 
 export interface IResponse {
   msg: string
@@ -34,10 +35,6 @@ export interface IExecutorOptions<T extends IObject> {
    */
   route?: string
   /**
-   * @default false
-   */
-  debug?: boolean
-  /**
    * @default 'express'
    */
   appType?: 'express'
@@ -46,24 +43,27 @@ export interface IExecutorOptions<T extends IObject> {
    */
   storageLog?: 'memory' | 'local'
   /**
-   * @default ''
+   * @default 'xxl-job-node.log'
    */
-  storageLocalUri?: string
+  storageLocalUrl?: string
+  /**
+   * Assign a common context object to all job handlers (database, redis...)
+   */
+  context?: T
 
-  context: T
   baseUrl: string
   app: Application
-  exectorKey: string
+  executorKey: string
   accessToken: string
   scheduleCenterUrl: string
   jobHandlers: Map<string, JobHandler<T>>
 }
 
-export interface ICallBackOptions<U = any> {
-  result?: U
+export interface ICallBackOptions<R = any> {
+  result?: R
   error?: Error
   logId: number
 }
 
 export type IObject = Record<string, any>
-export type JobHandler<T extends IObject, R = any> = (params: string, context?: T) => Promise<R>
+export type JobHandler<T extends IObject = any, R = any> = (logger: Logger, params: string, context?: T) => Promise<R>
