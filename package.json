@@ -42,8 +42,7 @@
     "prepublishOnly": "nr build",
     "release": "bumpp && npm publish",
     "start": "esno src/index.ts",
-    "test": "esno test/index.ts",
-    "test:watch": "esno watch test/index.ts",
+    "play": "esno  example/express",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
