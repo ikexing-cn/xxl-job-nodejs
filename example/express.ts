@@ -5,6 +5,7 @@ import { createXxlJobExecutor } from '../src/index'
 const app = express()
 app.use(express.json())
 app.listen(9999, () => {
+  // eslint-disable-next-line no-console
   console.log('Server started on port 9999')
 })
 

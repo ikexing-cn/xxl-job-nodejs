@@ -42,7 +42,7 @@
     "prepublishOnly": "nr build",
     "release": "bumpp && npm publish",
     "start": "esno src/index.ts",
-    "play": "esno  example/express",
+    "play:express": "esno watch example/express",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
