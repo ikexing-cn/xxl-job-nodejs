@@ -1,5 +1,6 @@
-import { logger } from './logger'
+import type { Logger } from 'winston'
 import type {
+  CallBack,
   IObject,
   IRunRequest,
   JobHandler
@@ -12,7 +13,7 @@ export function createTaskManager<T extends IObject>(context?: T) {
     return runningTaskList.has(jobId)
   }
 
-  async function runTask(jobHandler: JobHandler<T>, response: IRunRequest, callback: Function) {
+  async function runTask(logger: Logger, jobHandler: JobHandler<T>, response: IRunRequest, callback: CallBack) {
     let timeout: NodeJS.Timeout
     const { executorParams, jobId, executorTimeout, logId } = response
     logger.info(`Job Task: ${jobId} is running: ${logId}`)
@@ -22,26 +23,27 @@ export function createTaskManager<T extends IObject>(context?: T) {
 
     if (executorTimeout) {
       timeout = setTimeout(() => {
-        finishTask({ callback, jobId, timeout, logId, error: new Error(`Job Task: ${jobId} is Timeout.`) })
+        finishTask({ logger, callback, jobId, timeout, logId, error: new Error(`Job Task: ${jobId} is Timeout.`) })
       }, executorTimeout * 1000)
     }
 
     await jobHandler(logger, executorParams, context)
-      .then(() => finishTask({ callback, jobId, logId }))
-      .catch(error => finishTask({ callback, jobId, logId, error }))
+      .then(result => finishTask({ logger, result, callback, jobId, logId }))
+      .catch(error => finishTask({ logger, callback, jobId, logId, error }))
 
     return { code: 200, msg: 'Success' }
   }
 
   async function finishTask<R = any>(options: {
+    logger: Logger
     jobId: number
     logId: number
-    callback: Function
+    callback: CallBack
     result?: R
     error?: Error
     timeout?: NodeJS.Timeout
   }) {
-    const { jobId, logId, callback, error, timeout, result } = options
+    const { logger, jobId, logId, callback, error, timeout, result } = options
     timeout && clearTimeout(timeout)
     error && logger.error(error.message || error)
     logger.info(`Job Task: ${jobId} is finished: ${logId}`)

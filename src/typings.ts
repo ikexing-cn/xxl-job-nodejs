@@ -41,11 +41,11 @@ export interface IExecutorOptions<T extends IObject> {
   /**
    * @default 'memory'
    */
-  storageLog?: 'memory' | 'local'
+  storage?: 'memory' | 'local'
   /**
-   * @default 'xxl-job-node.log'
+   * @default 'xxl-job.log'
    */
-  storageLocalUrl?: string
+  localLogger?: string
   /**
    * Assign a common context object to all job handlers (database, redis...)
    */
@@ -59,11 +59,12 @@ export interface IExecutorOptions<T extends IObject> {
   jobHandlers: Map<string, JobHandler<T>>
 }
 
-export interface ICallBackOptions<R = any> {
-  result?: R
+export interface ICallBackOptions {
+  result: any
   error?: Error
   logId: number
 }
 
 export type IObject = Record<string, any>
-export type JobHandler<T extends IObject = any, P = any, R = any> = (logger: Logger, params: P, context?: T) => Promise<R>
+export type CallBack = (options: ICallBackOptions) => Promise<void>
+export type JobHandler<T extends IObject = any> = (logger: Logger, params: any, context?: T) => Promise<any>

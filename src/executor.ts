@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
 import { Router } from 'express'
-import { logger } from './logger'
+import { createXxlJobLogger } from './logger'
 import { createTaskManager, request } from './'
 import type { ICallBackOptions, IExecutorOptions, IObject, IRunRequest } from './'
 
@@ -17,14 +17,18 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     executorKey,
     jobHandlers,
     scheduleCenterUrl,
+    localLogger
   } = options
 
+  const { logger } = createXxlJobLogger(localLogger)
   const { runTask, hasJob } = createTaskManager(context)
+
   const data = { registryGroup: 'EXECUTOR', registryKey: executorKey, registryValue: baseUrl + route }
   const headers = { 'xxl-job-access-token': accessToken }
 
   async function initialization() {
     applyMiddleware()
+    registry()
     setInterval(() => registry(), 30000)
   }
 
@@ -114,7 +118,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     if (!jobHandler)
       return { code: 500, msg: `No matched jobHandler: ${executorHandler}` }
 
-    return await runTask(jobHandler, runRequest, callBack)
+    return await runTask(logger, jobHandler, runRequest, callBack)
   }
 
   function idleBeat(jobId: number) {
@@ -126,7 +130,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   }
 
   // TODO: Event Control
-  async function callBack<U = any>(options: ICallBackOptions<U>) {
+  async function callBack(options: ICallBackOptions) {
     const { error, result, logId } = options
     const url = `${scheduleCenterUrl}/api/callback`
     const headers = { 'xxl-job-access-token': accessToken }

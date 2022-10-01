@@ -5,14 +5,24 @@ const xxlJobFormat = printf(({ level, message, timestamp }) => {
   return `${timestamp} [XXL-JOB] ${level}: ${message}`
 })
 
-export const logger = createLogger({
-  format: combine(
-    timestamp(),
-    xxlJobFormat
-  ),
-  transports: [
-    new transports.Console(),
-    new transports.File({ filename: 'xxl-job.log' })
-  ]
-})
+export function createXxlJobLogger(localFilename?: string) {
+  const logger = createLogger({
+    format: combine(
+      timestamp(),
+      xxlJobFormat
+    ),
+    transports: [
+      new transports.Console(),
+    ]
+  })
+
+  const filename = `${localFilename}-${Date.now()}`
+
+  if (localFilename)
+    logger.add(new transports.File({ filename }))
+
+  return {
+    logger,
+  }
+}
 
