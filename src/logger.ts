@@ -1,3 +1,5 @@
+import { createReadStream } from 'node:fs'
+import { createInterface } from 'node:readline/promises'
 import { createLogger, format, transports } from 'winston'
 const { combine, timestamp, printf } = format
 
@@ -21,8 +23,38 @@ export function createXxlJobLogger(localFilename?: string) {
   if (localFilename)
     logger.add(new transports.File({ filename }))
 
+  async function readFromLogId(logId: number, fromLineNum: number): Promise<{
+    content: string
+    fromLineNum: number
+  }> {
+    return new Promise((resolve) => {
+      const stream = createReadStream(filename)
+      const rl = createInterface({ input: stream })
+      let lineNum = 0
+      let content = ''
+      let findFlag = false
+      rl.on('line', (line) => {
+        const start = new RegExp(`running:\s${logId}`)
+        const end = new RegExp(`finished:\s${logId}`)
+        if (lineNum > fromLineNum)
+          lineNum = fromLineNum
+        if (start.test(line))
+          findFlag = true
+        if (findFlag) {
+          content += `\n${line}`
+          lineNum++
+        }
+        if (lineNum > fromLineNum + 20 || end.test(line))
+          rl.close()
+      })
+
+      rl.once('close', () => resolve({ content, fromLineNum: lineNum }))
+    })
+  }
+
   return {
     logger,
+    readFromLogId
   }
 }
 
