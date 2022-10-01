@@ -133,12 +133,13 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   async function callBack(options: ICallBackOptions) {
     const { error, result, logId } = options
     const url = `${scheduleCenterUrl}/api/callback`
-    const headers = { 'xxl-job-access-token': accessToken }
 
     const handleCode = error ? 500 : 200
-    const handleMsg = error ? error.message || error.toString() : (result ? JSON.stringify(result) : 'success')
+    const handleMsg = error ? error.message || error.toString() : (result ? JSON.stringify(result) : 'Success')
     const data = [{ logId, logDateTim: Date.now(), handleCode, handleMsg }]
-    await request.post(url, { headers, data })
+    const res = await request(url, { method: 'POST', data, headers })
+    if (res.data?.code !== 200)
+      logger.error(`LogId ${logId} Callback failed: ${JSON.stringify(res)}`)
   }
 
   return {
