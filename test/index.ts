@@ -11,7 +11,7 @@ app.listen(9999, () => {
 const jobHandlers = new Map<string, JobHandler>()
 
 jobHandlers.set('nodejs_test', async (jobLogger, jobParams) => {
-  jobLogger.debug('params: %o', jobParams)
+  jobLogger.warn(`params: ${jobParams}`)
 })
 
 const xxlJobExecutor = createXxlJobExecutor({

@@ -32,18 +32,18 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     const url = `${scheduleCenterUrl}/api/registry`
     const res = await request(url, { method: 'POST', data, headers })
     if (res.data)
-      logger.trace('Registry info: ', res.data)
+      logger.info(`Registry info: ${JSON.stringify(res.data)}`)
     else
-      logger.error('Registry failed: ', res)
+      logger.error(`Registry failed: ${JSON.stringify(res)}`)
   }
 
   async function cancel() {
     const url = `${scheduleCenterUrl}/api/registryRemove`
     const res = await request(url, { method: 'POST', data, headers })
     if (res.data)
-      logger.trace('Registry info: ', res.data)
+      logger.info(`Registry info: ${JSON.stringify(res.data)}`)
     else
-      logger.error('Registry failed: ', res)
+      logger.error(`Registry failed: ${JSON.stringify(res)}`)
   }
 
   function applyMiddleware() {

@@ -1,29 +1,18 @@
-import Log4js from 'log4js'
+import { createLogger, format, transports } from 'winston'
+const { combine, timestamp, printf } = format
 
-Log4js.configure({
-  appenders: {
-    console: { type: 'console' },
-    file: { type: 'file', filename: 'xxl-job.log' }
-  },
-  categories: {
-    'default': {
-      appenders: ['console'],
-      level: 'debug'
-    },
-    'XXL-JOB': {
-      appenders: ['console', 'file'],
-      level: 'trace'
-    }
-  }
+const xxlJobFormat = printf(({ level, message, timestamp }) => {
+  return `${timestamp} [XXL-JOB] ${level}: ${message}`
 })
 
-const logger = Log4js.getLogger('XXL-JOB')
+export const logger = createLogger({
+  format: combine(
+    timestamp(),
+    xxlJobFormat
+  ),
+  transports: [
+    new transports.Console(),
+    new transports.File({ filename: 'xxl-job.log' })
+  ]
+})
 
-const readLogFromJobId = function () {
-
-}
-
-export {
-  logger,
-  readLogFromJobId
-}

@@ -1,5 +1,5 @@
 import type { Application } from 'express'
-import type { Logger } from 'log4js'
+import type { Logger } from 'winston'
 
 export interface IResponse {
   msg: string
@@ -16,7 +16,7 @@ export interface IRunRequest extends IRequest {
   glueSource: string
   logDateTime: number
   executorHandler: string
-  executorParams: string
+  executorParams: any
   executorTimeout: number
   glueUpdatetime: number
   broadcastIndex: number
@@ -66,4 +66,4 @@ export interface ICallBackOptions<R = any> {
 }
 
 export type IObject = Record<string, any>
-export type JobHandler<T extends IObject = any, R = any> = (logger: Logger, params: string, context?: T) => Promise<R>
+export type JobHandler<T extends IObject = any, P = any, R = any> = (logger: Logger, params: P, context?: T) => Promise<R>

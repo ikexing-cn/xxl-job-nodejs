@@ -15,8 +15,7 @@ export function createTaskManager<T extends IObject>(context?: T) {
   async function runTask(jobHandler: JobHandler<T>, response: IRunRequest, callback: Function) {
     let timeout: NodeJS.Timeout
     const { executorParams, jobId, executorTimeout, logId } = response
-    const taskParams = (executorParams && JSON.parse(executorParams)) || {}
-    logger.log(`Job Task: ${jobId} is running`)
+    logger.info(`Job Task: ${jobId} is running: ${logId}`)
     if (hasJob(jobId))
       return { code: 500, msg: 'There is already have a same job is running.' }
     runningTaskList.add(jobId)
@@ -27,7 +26,7 @@ export function createTaskManager<T extends IObject>(context?: T) {
       }, executorTimeout * 1000)
     }
 
-    await jobHandler(logger, taskParams, context)
+    await jobHandler(logger, executorParams, context)
       .then(() => finishTask({ callback, jobId, logId }))
       .catch(error => finishTask({ callback, jobId, logId, error }))
 
@@ -44,8 +43,8 @@ export function createTaskManager<T extends IObject>(context?: T) {
   }) {
     const { jobId, logId, callback, error, timeout, result } = options
     timeout && clearTimeout(timeout)
-    error && logger.trace(error.message || error)
-    logger.log(`Job Task: ${jobId} is finished`)
+    error && logger.error(error.message || error)
+    logger.info(`Job Task: ${jobId} is finished: ${logId}`)
     await callback({ error, result, logId })
     runningTaskList.delete(jobId)
   }
