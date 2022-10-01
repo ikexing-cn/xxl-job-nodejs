@@ -1,5 +1,5 @@
 import { createReadStream } from 'node:fs'
-import { createInterface } from 'node:readline/promises'
+import { createInterface } from 'node:readline'
 import { createLogger, format, transports } from 'winston'
 const { combine, timestamp, printf } = format
 
