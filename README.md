@@ -7,9 +7,8 @@
 ## TODO
 
 - [x] Complete basic functions
-- [ ] Event of each API
 - [ ] Example
-- [ ] Koa support
+- [ ] Koa support [low-priority]
 
 ## License
 
