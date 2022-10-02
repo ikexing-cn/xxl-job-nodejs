@@ -6,7 +6,7 @@
 
 ## TODO
 
-- [ ] Complete basic functions
+- [x] Complete basic functions
 - [ ] Event of each API
 - [ ] Example
 - [ ] Koa support

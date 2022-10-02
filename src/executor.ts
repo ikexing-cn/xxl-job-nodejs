@@ -10,17 +10,18 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   const {
     route = '/job',
     appType = 'express',
+    localName = 'xxl-job',
+    storage = 'memory',
     app,
     context,
     baseUrl,
     accessToken,
     executorKey,
     jobHandlers,
-    scheduleCenterUrl,
-    localLogger
+    scheduleCenterUrl
   } = options
 
-  const { logger } = createXxlJobLogger(localLogger)
+  const { logger, readFromLogId } = createXxlJobLogger(storage === 'local' ? localName : undefined)
   const { runTask, hasJob } = createTaskManager(context)
 
   const data = { registryGroup: 'EXECUTOR', registryKey: executorKey, registryValue: baseUrl + route }
@@ -66,10 +67,12 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
       const token = req.headers['xxl-job-access-token']
       if (!!accessToken && accessToken !== token) {
         res.send({ code: 500, msg: 'Access token incorrect.' })
+        logger.error('Access token incorrect.')
         return
       }
       if (!req?.body) {
         res.send({ code: 500, msg: 'Is app.use(express.json()) missing?' })
+        logger.error('Is app.use(express.json()) missing?')
         return
       }
       await next()
@@ -92,24 +95,9 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
       res.status(200).send(killJob(jobId))
     })
     router.post(`${route}/log`, async (req, res) => {
-      // todo
-      res.send({
-        code: 200,
-        msg: null,
-        content: {
-          fromLineNum: 1, // 本次请求，日志开始行数
-          toLineNum: 100, // 本次请求，日志结束行号
-          logContent: 'xxx', // 本次请求日志内容
-          isEnd: true // 日志是否全部加载完
-        }
-      })
+      const { logId, fromLineNum, logDateTim } = req.body
+      res.status(200).send(await readLog(logId, fromLineNum, logDateTim))
     })
-    // router.post(`${baseUrl}/log`, async (...contexts) => {
-    //   const { req, res } = wrappedHandler(contexts)
-    //   const { logDateTim: logDateTime, logId, fromLineNum } = propOr({}, 'body', req)
-    //   const data = awaitreadLog(logDateTime, logId, fromLineNum)
-    //   res.send(data)
-    // })
   }
 
   async function run(runRequest: IRunRequest) {
@@ -127,6 +115,30 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
 
   function killJob(jobId: any): any {
     return { code: 500, msg: `Not yet support, jobId: ${jobId}` }
+  }
+
+  async function readLog(logId: number, _fromLineNum: number, logDateTim: number) {
+    if (!localName) {
+      logger.error('No local logger found.')
+      return {
+        code: 500,
+        msg: 'No local logger found.'
+      }
+    }
+    const { content, fromLineNum, endFlag, findFlag, lineNum } = await readFromLogId(logId, _fromLineNum, logDateTim)
+    if (!findFlag) {
+      const _content = `Log not found, logId: ${logId}`
+      logger.error(_content)
+      return {
+        code: 500,
+        msg: _content
+      }
+    }
+    else {
+      return {
+        code: 200, msg: null, content: { fromLineNum, toLineNum: lineNum, logContent: content, isEnd: endFlag }
+      }
+    }
   }
 
   // TODO: Event Control
@@ -148,3 +160,4 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     applyMiddleware
   }
 }
+

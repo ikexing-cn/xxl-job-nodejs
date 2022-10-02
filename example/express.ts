@@ -22,6 +22,7 @@ const xxlJobExecutor = createXxlJobExecutor({
   baseUrl: 'http://192.168.3.38:9999',
   accessToken: 'default_token',
   executorKey: 'executor-nodejs-express',
-  scheduleCenterUrl: 'http://127.0.0.1:8080/xxl-job-admin'
+  scheduleCenterUrl: 'http://127.0.0.1:8080/xxl-job-admin',
+  storage: 'local',
 })
 await xxlJobExecutor.initialization()

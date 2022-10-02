@@ -24,11 +24,6 @@ export interface IRunRequest extends IRequest {
   executorBlockStrategy: string
 }
 
-export interface IKillResuest extends IRequest {
-  logDateTim: number
-  fromLineNum: number
-}
-
 export interface IExecutorOptions<T extends IObject> {
   /**
    * @default '/job'
@@ -45,7 +40,7 @@ export interface IExecutorOptions<T extends IObject> {
   /**
    * @default 'xxl-job.log'
    */
-  localLogger?: string
+  localName?: string
   /**
    * Assign a common context object to all job handlers (database, redis...)
    */
@@ -65,6 +60,15 @@ export interface ICallBackOptions {
   logId: number
 }
 
+export interface ILogRead {
+  findFlag: boolean
+  endFlag: boolean
+  content?: string
+  lineNum?: number
+  fromLineNum?: number
+}
+
+export type LogRead = Promise<ILogRead>
 export type IObject = Record<string, any>
 export type CallBack = (options: ICallBackOptions) => Promise<void>
 export type JobHandler<T extends IObject = any> = (logger: Logger, params: any, context?: T) => Promise<any>
