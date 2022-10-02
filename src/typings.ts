@@ -71,4 +71,4 @@ export interface ILogRead {
 export type LogRead = Promise<ILogRead>
 export type IObject = Record<string, any>
 export type CallBack = (options: ICallBackOptions) => Promise<void>
-export type JobHandler<T extends IObject = any> = (logger: Logger, params: any, context?: T) => Promise<any>
+export type JobHandler<T extends IObject = any> = (logger: Logger, request: IRunRequest, params: any, context?: T) => Promise<any>

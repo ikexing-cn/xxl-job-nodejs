@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express'
 import { Router } from 'express'
 import { createXxlJobLogger } from './logger'
-import { createTaskManager, request } from './'
+import { createJobManager, request } from './'
 import type { ICallBackOptions, IExecutorOptions, IObject, IRunRequest } from './'
 
 export function createXxlJobExecutor<T extends IObject>(options: IExecutorOptions<T>) {
@@ -22,7 +22,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   } = options
 
   const { logger, readFromLogId } = createXxlJobLogger(storage === 'local' ? localName : undefined)
-  const { runTask, hasJob } = createTaskManager(context)
+  const { runTask, hasJob } = createJobManager(context)
 
   const data = { registryGroup: 'EXECUTOR', registryKey: executorKey, registryValue: baseUrl + route }
   const headers = { 'xxl-job-access-token': accessToken }
@@ -81,7 +81,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
 
   function addRoutes() {
     router.post(`${route}/beat`, async (_, res) => {
-      res.status(200).send({ code: 200, msg: 'success' })
+      res.status(200).send({ code: 200, msg: 'Success' })
     })
     router.post(`${route}/idleBeat`, async (req, res) => {
       const { jobId = -1 } = req.body
@@ -141,7 +141,6 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     }
   }
 
-  // TODO: Event Control
   async function callBack(options: ICallBackOptions) {
     const { error, result, logId } = options
     const url = `${scheduleCenterUrl}/api/callback`
