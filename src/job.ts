@@ -6,35 +6,35 @@ import type {
   JobHandler
 } from './typings'
 
-export function createTaskManager<T extends IObject>(context?: T) {
-  const runningTaskList = new Set<number>()
+export function createJobManager<T extends IObject>(context?: T) {
+  const runningJobList = new Set<number>()
 
   function hasJob(jobId: number) {
-    return runningTaskList.has(jobId)
+    return runningJobList.has(jobId)
   }
 
-  async function runTask(logger: Logger, jobHandler: JobHandler<T>, response: IRunRequest, callback: CallBack) {
+  async function runJob(logger: Logger, jobHandler: JobHandler<T>, request: IRunRequest, callback: CallBack) {
     let timeout: NodeJS.Timeout
-    const { executorParams, jobId, executorTimeout, logId } = response
+    const { executorParams, jobId, executorTimeout, logId } = request
     logger.info(`Job Task: ${jobId} is running: ${logId}`)
     if (hasJob(jobId))
       return { code: 500, msg: 'There is already have a same job is running.' }
-    runningTaskList.add(jobId)
+    runningJobList.add(jobId)
 
     if (executorTimeout) {
       timeout = setTimeout(() => {
-        finishTask({ logger, callback, jobId, timeout, logId, error: new Error(`Job Task: ${jobId} is Timeout.`) })
+        finishJob({ logger, callback, jobId, timeout, logId, error: new Error(`Job Task: ${jobId} is Timeout.`) })
       }, executorTimeout * 1000)
     }
 
-    await jobHandler(logger, executorParams, context)
-      .then(result => finishTask({ logger, result, callback, jobId, logId }))
-      .catch(error => finishTask({ logger, callback, jobId, logId, error }))
+    await jobHandler(logger, request, executorParams, context)
+      .then(result => finishJob({ logger, result, callback, jobId, logId }))
+      .catch(error => finishJob({ logger, callback, jobId, logId, error }))
 
     return { code: 200, msg: 'Success' }
   }
 
-  async function finishTask<R = any>(options: {
+  async function finishJob<R = any>(options: {
     logger: Logger
     jobId: number
     logId: number
@@ -48,11 +48,11 @@ export function createTaskManager<T extends IObject>(context?: T) {
     error && logger.error(error.message || error)
     logger.info(`Job Task: ${jobId} is finished: ${logId}`)
     await callback({ error, result, logId })
-    runningTaskList.delete(jobId)
+    runningJobList.delete(jobId)
   }
 
   return {
     hasJob,
-    runTask
+    runTask: runJob
   }
 }
