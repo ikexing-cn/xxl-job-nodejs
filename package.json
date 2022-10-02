@@ -1,9 +1,9 @@
 {
   "name": "xxl-job",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "packageManager": "pnpm@7.5.2",
-  "description": "",
+  "description": "Provide xxl-job SDK for NodeJs.",
   "author": "ikexing <ikexing@qq.com>",
   "license": "MIT",
   "homepage": "https://github.com/ikexing-cn/xxl-job-nodejs#readme",
@@ -12,7 +12,11 @@
     "url": "git+https://github.com/ikexing-cn/xxl-job-nodejs.git"
   },
   "bugs": "https://github.com/ikexing-cn/xxl-job-nodejs/issues",
-  "keywords": [],
+  "keywords": [
+    "xxljob",
+    "xxl-job",
+    "sdk"
+  ],
   "sideEffects": false,
   "exports": {
     ".": {
