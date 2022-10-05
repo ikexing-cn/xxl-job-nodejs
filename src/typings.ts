@@ -36,11 +36,11 @@ export interface IExecutorOptions<T extends IObject> {
   /**
    * @default 'memory'
    */
-  storage?: 'memory' | 'local'
+  logStorage?: 'memory' | 'local'
   /**
-   * @default 'xxl-job.log'
+   * @default 'xxl-job'
    */
-  localName?: string
+  logLocalName?: string
   /**
    * Assign a common context object to all job handlers (database, redis...)
    */

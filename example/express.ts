@@ -22,7 +22,7 @@ app.listen(9999, () => {
     accessToken: 'default_token',
     executorKey: 'executor-nodejs-express',
     scheduleCenterUrl: 'http://127.0.0.1:8080/xxl-job-admin',
-    storage: 'local',
+    logStorage: 'local',
   })
   xxlJobExecutor.initialization()
 })

@@ -10,8 +10,8 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   const {
     route = '/job',
     appType = 'express',
-    localName = 'xxl-job',
-    storage = 'memory',
+    logLocalName = 'xxl-job',
+    logStorage = 'memory',
     app,
     context,
     baseUrl,
@@ -21,7 +21,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     scheduleCenterUrl
   } = options
 
-  const { logger, readFromLogId } = createXxlJobLogger(storage === 'local' ? localName : undefined)
+  const { logger, readFromLogId } = createXxlJobLogger(logStorage === 'local' ? logLocalName : undefined)
   const { runJob, hasJob } = createJobManager(context)
 
   const data = { registryGroup: 'EXECUTOR', registryKey: executorKey, registryValue: baseUrl + route }
@@ -118,7 +118,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   }
 
   async function readLog(logId: number, _fromLineNum: number, logDateTim: number) {
-    if (!localName) {
+    if (!logLocalName) {
       logger.error('No local logger found.')
       return {
         code: 500,
