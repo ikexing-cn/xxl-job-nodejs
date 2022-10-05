@@ -41,7 +41,7 @@
   ],
   "scripts": {
     "build": "unbuild",
-    "dev": "esno watch src/index.ts",
+    "dev": "unbuild --stub",
     "lint": "eslint .",
     "prepublishOnly": "nr build",
     "release": "bumpp && npm publish",

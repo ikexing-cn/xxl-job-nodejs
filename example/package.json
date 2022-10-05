@@ -1,0 +1,9 @@
+{
+  "name": "example",
+  "scripts": {
+    "dev": "esno watch express"
+  },
+  "dependencies": {
+    "xxl-job": "workspace:xxl-job@*"
+  }
+}

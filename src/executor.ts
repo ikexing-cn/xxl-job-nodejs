@@ -22,7 +22,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   } = options
 
   const { logger, readFromLogId } = createXxlJobLogger(storage === 'local' ? localName : undefined)
-  const { runTask, hasJob } = createJobManager(context)
+  const { runJob, hasJob } = createJobManager(context)
 
   const data = { registryGroup: 'EXECUTOR', registryKey: executorKey, registryValue: baseUrl + route }
   const headers = { 'xxl-job-access-token': accessToken }
@@ -106,7 +106,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     if (!jobHandler)
       return { code: 500, msg: `No matched jobHandler: ${executorHandler}` }
 
-    return await runTask(logger, jobHandler, runRequest, callBack)
+    return await runJob(logger, jobHandler, runRequest, callBack)
   }
 
   function idleBeat(jobId: number) {

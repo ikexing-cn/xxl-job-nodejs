@@ -53,6 +53,6 @@ export function createJobManager<T extends IObject>(context?: T) {
 
   return {
     hasJob,
-    runTask: runJob
+    runJob
   }
 }
