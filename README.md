@@ -36,7 +36,7 @@ jobHandlers.set('nodejs_test', async (jobLogger, jobRequest, jobParams) => {
 const app = express()
 app.use(express.json())
 
-app.listen(9999, () => {
+app.listen(8081, () => {
   const xxlJobExecutor = createXxlJobExecutor({
     app,
     jobHandlers,
