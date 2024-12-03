@@ -7,6 +7,20 @@ jobHandlers.set('nodejs_test', async (jobLogger, jobRequest, jobParams) => {
   jobLogger.warn(`request: ${JSON.stringify(jobRequest)}, params: ${jobParams}`)
 })
 
+const timer = function () {
+  return new Promise(resolve => setTimeout(resolve, 500))
+}
+
+jobHandlers.set('nodejs_test_with_Kill', async (jobLogger, jobRequest, jobParams) => {
+  jobLogger.warn(`request: ${JSON.stringify(jobRequest)}, params: ${jobParams}`)
+  const { isKill } = jobRequest
+  for (let count = 1; count < 2000; count++) {
+    await timer() // do something
+    if (isKill())
+      throw new Error('Job has been killed')
+  }
+})
+
 const app = express()
 app.use(express.json())
 
