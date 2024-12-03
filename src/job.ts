@@ -3,56 +3,68 @@ import type {
   CallBack,
   IObject,
   IRunRequest,
-  JobHandler
+  JobHandler, JobKillUtil, JobObject
 } from './typings'
+import { initJobIsKill } from './utils'
+import { createXxlJobLogger, generatorJobLogFileName } from './logger'
 
-export function createJobManager<T extends IObject>(context?: T) {
-  const runningJobList = new Set<number>()
+export function createJobManager<T extends IObject>(logStorage: string, context?: T) {
+  const runningJobMap = new Map<number, JobObject>()
 
   function hasJob(jobId: number) {
-    return runningJobList.has(jobId)
+    return runningJobMap.has(jobId)
   }
-
-  async function runJob(logger: Logger, jobHandler: JobHandler<T>, request: IRunRequest, callback: CallBack) {
-    let timeout: NodeJS.Timeout
+  function getJob(jobId: number) {
+    return runningJobMap.get(jobId)
+  }
+  async function runJob(mainLogger: Logger, jobHandler: JobHandler<T>, request: IRunRequest, callback: CallBack) {
+    let timeout: NodeJS.Timeout | null = null
     const { executorParams, jobId, executorTimeout, logId } = request
+    const logger = logStorage === 'local' ? createXxlJobLogger(generatorJobLogFileName(request.logId, request.logDateTime)).logger : mainLogger
     logger.info(`Job Task: ${jobId} is running: ${logId}`)
     if (hasJob(jobId))
       return { code: 500, msg: 'There is already have a same job is running.' }
-    runningJobList.add(jobId)
-
     if (executorTimeout) {
       timeout = setTimeout(() => {
-        finishJob({ logger, callback, jobId, timeout, logId, error: new Error(`Job Task: ${jobId} is Timeout.`) })
+        finishJob({ jobId, error: new Error(`Job Task: ${jobId} is Timeout.`) })
       }, executorTimeout * 1000)
     }
-
-    await jobHandler(logger, request, executorParams, context)
-      .then(result => finishJob({ logger, result, callback, jobId, logId }))
-      .catch(error => finishJob({ logger, callback, jobId, logId, error }))
-
+    const jobKill: JobKillUtil = initJobIsKill()
+    runningJobMap.set(jobId, {
+      id: jobId,
+      callback,
+      jobKill,
+      logId,
+      logger,
+      timeout
+    })
+    jobHandler(logger, { ...request, isKill: jobKill.isKill }, executorParams, context).then(result => finishJob({ jobId, result })).catch(error => finishJob({ jobId, error }))
     return { code: 200, msg: 'Success' }
   }
 
   async function finishJob<R = any>(options: {
-    logger: Logger
     jobId: number
-    logId: number
-    callback: CallBack
-    result?: R
-    error?: Error
-    timeout?: NodeJS.Timeout
+    func?: CallBack | undefined
+    result?: R | undefined
+    error?: Error | undefined
   }) {
-    const { logger, jobId, logId, callback, error, timeout, result } = options
+    const { error, result } = options
+    const job = runningJobMap.get(options.jobId)
+    if (!job)
+      return
+    const { id: jobId, logger, logId, callback, timeout, jobKill: { setJobKill } } = job
+    setJobKill()
     timeout && clearTimeout(timeout)
     error && logger.error(error.message || error)
     logger.info(`Job Task: ${jobId} is finished: ${logId}`)
     await callback({ error, result, logId })
-    runningJobList.delete(jobId)
+    runningJobMap.delete(jobId)
   }
 
   return {
     hasJob,
-    runJob
+    getJob,
+    runJob,
+    finishJob
   }
 }
