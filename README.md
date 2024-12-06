@@ -53,7 +53,7 @@ app.listen(8081, () => {
 See the [example](./example/) folder for details
 
 ## License
-[MIT](./LICENSE) License © 2022 [KeXing](https://github.com/ikexing-cn)
+[MIT](./LICENSE) License © 2022 [ikexing-cn](https://github.com/ikexing-cn)
 
 ## Code Reference
 
