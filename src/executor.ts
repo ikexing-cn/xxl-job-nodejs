@@ -1,16 +1,14 @@
 import type { Request, Response } from 'express'
 import { Router } from 'express'
-import { createXxlJobLogger } from './logger'
+import { createXxlJobLogger, readFromLogId } from './logger'
 import { createJobManager, request } from './'
 import type { ICallBackOptions, IExecutorOptions, IObject, IRunRequest } from './'
 
 export function createXxlJobExecutor<T extends IObject>(options: IExecutorOptions<T>) {
   const router: Router = Router()
-
   const {
     route = '/job',
     appType = 'express',
-    logLocalName = 'xxl-job',
     logStorage = 'memory',
     app,
     context,
@@ -21,34 +19,35 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     scheduleCenterUrl
   } = options
 
-  const { logger, readFromLogId } = createXxlJobLogger(logStorage === 'local' ? logLocalName : undefined)
-  const { runJob, hasJob } = createJobManager(context)
+  const { logger } = createXxlJobLogger(logStorage === 'local' ? 'main.log' : undefined)
+  const { runJob, hasJob, finishJob } = createJobManager(logStorage, context)
 
   const data = { registryGroup: 'EXECUTOR', registryKey: executorKey, registryValue: baseUrl + route }
   const headers = { 'xxl-job-access-token': accessToken }
 
   async function initialization() {
     applyMiddleware()
-    registry()
+    registry(true)
     setInterval(() => registry(), 30000)
   }
 
-  async function registry() {
+  async function registry(isInit = false) {
     const url = `${scheduleCenterUrl}/api/registry`
     const res = await request(url, { method: 'POST', data, headers })
-    if (res.data)
-      logger.info(`Registry info: ${JSON.stringify(res.data)}`)
-    else
-      logger.error(`Registry failed: ${JSON.stringify(res)}`)
+    if (res.data) {
+      if (isInit)
+        logger.info(`Registry info: ${JSON.stringify(res.data)}`)
+    }
+    else { logger.error(`Registry failed: ${JSON.stringify(res)}`) }
   }
 
   async function cancel() {
     const url = `${scheduleCenterUrl}/api/registryRemove`
     const res = await request(url, { method: 'POST', data, headers })
     if (res.data)
-      logger.info(`Registry info: ${JSON.stringify(res.data)}`)
+      logger.info(`Registry remove info: ${JSON.stringify(res.data)}`)
     else
-      logger.error(`Registry failed: ${JSON.stringify(res)}`)
+      logger.error(`Registry remove failed: ${JSON.stringify(res)}`)
   }
 
   function applyMiddleware() {
@@ -81,7 +80,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
 
   function addRoutes() {
     router.post(`${route}/beat`, async (_, res) => {
-      res.status(200).send({ code: 200, msg: 'Success' })
+      res.status(200).send({ code: 200, msg: null })
     })
     router.post(`${route}/idleBeat`, async (req, res) => {
       const { jobId = -1 } = req.body
@@ -92,7 +91,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     })
     router.post(`${route}/kill`, async (req, res) => {
       const { jobId = -1 } = req.body
-      res.status(200).send(killJob(jobId))
+      res.status(200).send(await killJob(jobId))
     })
     router.post(`${route}/log`, async (req, res) => {
       const { logId, fromLineNum, logDateTim } = req.body
@@ -113,12 +112,18 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     return hasJob(jobId) ? { code: 500, msg: 'busy' } : { code: 200, msg: 'idle' }
   }
 
-  function killJob(jobId: any): any {
-    return { code: 500, msg: `Not yet support, jobId: ${jobId}` }
+  async function killJob(jobId: number) {
+    if (hasJob(jobId)) {
+      finishJob({ jobId, result: `Job Task: ${jobId} is killed.` }).then()
+      return { code: 200, msg: null }
+    }
+    else {
+      return { code: 200, msg: 'job thread already killed.' }
+    }
   }
 
   async function readLog(logId: number, _fromLineNum: number, logDateTim: number) {
-    if (!logLocalName) {
+    if (!(logStorage === 'local')) {
       logger.error('No local logger found.')
       return {
         code: 500,
@@ -154,8 +159,8 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   }
 
   return {
-    cancel,
     initialization,
+    cancel,
     applyMiddleware
   }
 }

@@ -11,6 +11,7 @@ export interface IRequest {
 }
 
 export interface IRunRequest extends IRequest {
+  isKill: Function
   logId: number
   glueType: string
   glueSource: string
@@ -72,3 +73,18 @@ export type LogRead = Promise<ILogRead>
 export type IObject = Record<string, any>
 export type CallBack = (options: ICallBackOptions) => Promise<void>
 export type JobHandler<T extends IObject = any> = (logger: Logger, request: IRunRequest, params: any, context?: T) => Promise<any>
+
+export interface JobKillUtil {
+  isKill: Function
+  setJobKill: Function
+}
+
+export interface JobObject {
+  id: number
+  callback: CallBack
+  jobKill: JobKillUtil
+  logId: number
+  logger: Logger
+  timeout: NodeJS.Timeout | null
+}
+
