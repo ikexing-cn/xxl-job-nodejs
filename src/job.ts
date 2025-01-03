@@ -8,7 +8,7 @@ import type {
 import { initJobIsKill } from './utils'
 import { createXxlJobLogger, generatorJobLogFileName } from './logger'
 
-export function createJobManager<T extends IObject>(logStorage: string, context?: T) {
+export function createJobManager<T extends IObject>(logStorage: string, logLocalName: string, context?: T) {
   const runningJobMap = new Map<number, JobObject>()
 
   function hasJob(jobId: number) {
@@ -20,7 +20,7 @@ export function createJobManager<T extends IObject>(logStorage: string, context?
   async function runJob(mainLogger: Logger, jobHandler: JobHandler<T>, request: IRunRequest, callback: CallBack) {
     let timeout: NodeJS.Timeout | null = null
     const { executorParams, jobId, executorTimeout, logId } = request
-    const logger = logStorage === 'local' ? createXxlJobLogger(generatorJobLogFileName(request.logId, request.logDateTime)).logger : mainLogger
+    const logger = logStorage === 'local' ? createXxlJobLogger(generatorJobLogFileName(request.logId, request.logDateTime, logLocalName)).logger : mainLogger
     logger.info(`Job Task: ${jobId} is running: ${logId}`)
     if (hasJob(jobId))
       return { code: 500, msg: 'There is already have a same job is running.' }
