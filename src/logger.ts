@@ -29,14 +29,14 @@ export function createXxlJobLogger(logFilename?: string) {
   }
 }
 
-export function generatorJobLogFileName(logId: number, logDateTim: number) {
+export function generatorJobLogFileName(logId: number, logDateTim: number, logLocalName: string) {
   const logDate = new Date(logDateTim)
-  return join(`${logDate.getFullYear()}`, `${logDate.getMonth() + 1}`, `${logDate.getDay() + 1}`, `jobLog_${logId}.log`)
+  return join(`${logDate.getFullYear()}`, `${logDate.getMonth() + 1}`, `${logDate.getDay() + 1}`, `${logLocalName}_${logId}.log`)
 }
 
-export async function readFromLogId(logId: number, fromLineNum: number, logDateTim: number): LogRead {
+export async function readFromLogId(logId: number, fromLineNum: number, logDateTim: number, logLocalName: string): LogRead {
   return new Promise((resolve) => {
-    const logFile = join('logs', generatorJobLogFileName(logId, logDateTim))
+    const logFile = join('logs', generatorJobLogFileName(logId, logDateTim, logLocalName))
     if (!existsSync(logFile)) {
       resolve({ findFlag: false, endFlag: true })
       return

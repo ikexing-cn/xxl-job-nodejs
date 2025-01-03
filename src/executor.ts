@@ -9,6 +9,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   const {
     route = '/job',
     appType = 'express',
+    logLocalName = 'xxl-job',
     logStorage = 'memory',
     app,
     context,
@@ -19,8 +20,8 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     scheduleCenterUrl
   } = options
 
-  const { logger } = createXxlJobLogger(logStorage === 'local' ? 'main.log' : undefined)
-  const { runJob, hasJob, finishJob } = createJobManager(logStorage, context)
+  const { logger } = createXxlJobLogger(logStorage === 'local' ? `${logLocalName}.log` : undefined)
+  const { runJob, hasJob, finishJob } = createJobManager(logStorage, logLocalName, context)
 
   const data = { registryGroup: 'EXECUTOR', registryKey: executorKey, registryValue: baseUrl + route }
   const headers = { 'xxl-job-access-token': accessToken }
@@ -130,7 +131,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
         msg: 'No local logger found.'
       }
     }
-    const { content, fromLineNum, endFlag, findFlag, lineNum } = await readFromLogId(logId, _fromLineNum, logDateTim)
+    const { content, fromLineNum, endFlag, findFlag, lineNum } = await readFromLogId(logId, _fromLineNum, logDateTim, logLocalName)
     if (!findFlag) {
       const _content = `Log not found, logId: ${logId}`
       logger.error(_content)
