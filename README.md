@@ -29,8 +29,19 @@ import type { JobHandler } from 'xxl-job'
 import { createXxlJobExecutor } from 'xxl-job'
 
 const jobHandlers = new Map<string, JobHandler>()
+
 jobHandlers.set('nodejs_test', async (jobLogger, jobRequest, jobParams) => {
   jobLogger.warn(`request: ${JSON.stringify(jobRequest)}, params: ${jobParams}`)
+})
+
+jobHandlers.set('nodejs_test_with_Kill', async (jobLogger, jobRequest, jobParams) => {
+    jobLogger.warn(`request: ${JSON.stringify(jobRequest)}, params: ${jobParams}`)
+    const { isKill } = jobRequest
+    for (let count = 1; count < 2000; count++) {
+        // do something
+        if (isKill())
+            throw new Error('Job has been killed')
+    }
 })
 
 const app = express()
@@ -50,7 +61,7 @@ app.listen(8081, () => {
 })
 ```
 
-See the [example](./example/) folder for details
+See the [example](./example) folder for details
 
 ## License
 [MIT](./LICENSE) License © 2022 [ikexing-cn](https://github.com/ikexing-cn)
