@@ -1,7 +1,7 @@
 {
   "name": "xxl-job",
   "type": "module",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "packageManager": "pnpm@9.12.3",
   "description": "Provide xxl-job SDK for NodeJs.",
   "author": "ikexing <ikexing@qq.com>",
