@@ -47,7 +47,11 @@ export interface IExecutorOptions<T extends IObject> {
    */
   context?: T
 
-  baseUrl: string
+  baseUrl?: string
+
+  ip?: string | 'dynamic'
+  port?: number
+
   app: Application
   executorKey: string
   accessToken: string

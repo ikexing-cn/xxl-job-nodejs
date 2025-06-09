@@ -53,7 +53,9 @@ app.listen(8081, () => {
     jobHandlers,
     appType: 'express',
     accessToken: 'default_token',
-    baseUrl: 'http://127.0.0.1:8081', // Server address
+    baseUrl: 'http://127.0.0.1:8081',
+    // 若IP不固定可以使用<dynamicIP>占位符,程序会自动替换为当前IP
+    // baseUrl: 'http://<dynamicIP>:8081',
     executorKey: 'executor-nodejs-express',
     scheduleCenterUrl: 'http://127.0.0.1:8080/xxl-job-admin', // xxl-job address
   })
