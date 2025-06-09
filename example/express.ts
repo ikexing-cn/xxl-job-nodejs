@@ -35,6 +35,10 @@ app.listen(9999, () => {
     baseUrl: 'http://localhost:8081',
     // If the IP is not fixed, you can use the <DynamicIP> placeholder, the program will automatically replace it with the current IP
     // baseUrl: 'http://<DynamicIP>:8081',
+    // -----------------------------------
+    // ip: 'dynamic',
+    // port: 8081, // It's also support
+    // -----------------------------------
     accessToken: 'default_token',
     executorKey: 'executor-nodejs-express',
     scheduleCenterUrl: 'http://127.0.0.1:8080/xxl-job-admin',

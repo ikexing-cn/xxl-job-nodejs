@@ -54,8 +54,12 @@ app.listen(8081, () => {
     appType: 'express',
     accessToken: 'default_token',
     baseUrl: 'http://127.0.0.1:8081',
-    // 若IP不固定可以使用<dynamicIP>占位符,程序会自动替换为当前IP
-    // baseUrl: 'http://<dynamicIP>:8081',
+    // If the IP is not fixed, you can use the <DynamicIP> placeholder, the program will automatically replace it with the current IP
+    // baseUrl: 'http://<DynamicIP>:8081',
+    // -----------------------------------
+    // ip: 'dynamic',
+    // port: 8081, // It's also support
+    // -----------------------------------
     executorKey: 'executor-nodejs-express',
     scheduleCenterUrl: 'http://127.0.0.1:8080/xxl-job-admin', // xxl-job address
   })
