@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express'
 import { Router } from 'express'
 import { createXxlJobLogger, readFromLogId } from './logger'
+import { getProgramIp } from './utils'
 import { createJobManager, request } from './'
 import type { ICallBackOptions, IExecutorOptions, IObject, IRunRequest } from './'
 
@@ -13,12 +14,17 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     logStorage = 'memory',
     app,
     context,
-    baseUrl,
     accessToken,
     executorKey,
     jobHandlers,
     scheduleCenterUrl
   } = options
+
+  let { baseUrl } = options
+
+  // 判断baseUrl是否存在<dynamicIp>, 如果存在，自动检测本机IP
+  if (baseUrl.includes('<dynamicIP>'))
+    baseUrl = baseUrl.replace('<dynamicIP>', getProgramIp())
 
   const { logger } = createXxlJobLogger(logStorage === 'local' ? `${logLocalName}.log` : undefined)
   const { runJob, hasJob, finishJob } = createJobManager(logStorage, logLocalName, context)
