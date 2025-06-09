@@ -20,11 +20,20 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
     scheduleCenterUrl
   } = options
 
-  let { baseUrl } = options
+  // eslint-disable-next-line prefer-const
+  let { baseUrl, ip, port } = options
 
-  // 判断baseUrl是否存在<dynamicIp>, 如果存在，自动检测本机IP
-  if (baseUrl && baseUrl.length > 0 && baseUrl.includes('<dynamicIP>'))
-    baseUrl = baseUrl.replace('<dynamicIP>', getProgramIp())
+  // If baseUrl exists and is not empty, and contains '<DynamicIP>', automatically detect the IP address of the current machine
+  if (baseUrl && baseUrl.length > 0) {
+    if (baseUrl.includes('<DynamicIP>'))
+      baseUrl = baseUrl.replace('<DynamicIP>', getProgramIp())
+  }
+  else {
+    if (ip === 'dynamic')
+      ip = getProgramIp()
+    if (port)
+      baseUrl = `${ip}:${port ?? 8080}`
+  }
 
   const { logger } = createXxlJobLogger(logStorage === 'local' ? `${logLocalName}.log` : undefined)
   const { runJob, hasJob, finishJob } = createJobManager(logStorage, logLocalName, context)

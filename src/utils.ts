@@ -12,8 +12,8 @@ export const initJobIsKill = () => {
 }
 
 /**
- * 获取当前程序的IP地址.
- * @returns 当前程序的IP地址
+ * Get the IP address of the current program.
+ * @returns The IP address of the current program
  */
 export const getProgramIp = function () {
   try {
@@ -29,15 +29,15 @@ export const getProgramIp = function () {
           && !iface.internal
           && iface.address
         ) {
-          // 当前程序IP地址: ${iface.address}
+          // The IP address of the current program: ${iface.address}
           return iface.address
         }
       }
     }
   }
   catch (e) {
-    // 获取本机IP地址失败，可能是权限问题或环境不支持
+    // Failed to get the IP address of the local machine, possibly due to permission issues or unsupported environment
   }
 
-  return ''
+  return 'localhost'
 }
