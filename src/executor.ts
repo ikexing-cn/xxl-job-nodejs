@@ -23,7 +23,7 @@ export function createXxlJobExecutor<T extends IObject>(options: IExecutorOption
   let { baseUrl } = options
 
   // 判断baseUrl是否存在<dynamicIp>, 如果存在，自动检测本机IP
-  if (baseUrl.includes('<dynamicIP>'))
+  if (baseUrl && baseUrl.length > 0 && baseUrl.includes('<dynamicIP>'))
     baseUrl = baseUrl.replace('<dynamicIP>', getProgramIp())
 
   const { logger } = createXxlJobLogger(logStorage === 'local' ? `${logLocalName}.log` : undefined)
